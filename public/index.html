@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <link rel="icon" href="data:," />
+    <title>Boids Demo</title>
+    <link rel="stylesheet" href="css/presenter.css" />
+    <script src="js/vendor/p5.min.js"></script>
+    <script type="module" src="js/presenter.js"></script>
+  </head>
+  <body>
+    <main class="stage" id="stage"></main>
+
+    <div class="perf" id="perf" hidden>FPS --</div>
+
+    <div class="net" id="net" data-status="offline" title="Connection to the server">
+      <span class="net__dot"></span>
+      <span class="net__label" id="net-label">Offline</span>
+    </div>
+
+    <aside class="join" id="join" data-size="large" aria-label="Join" hidden>
+      <h2 class="join__title">Scan to join</h2>
+      <img class="join__qr" id="join-qr" alt="QR code for the join page" />
+      <p class="join__url" id="join-url"></p>
+      <p class="join__note" id="join-note" hidden>
+        This address only works on this computer. Open the presenter page by its public
+        address so phones can reach it.
+      </p>
+      <p class="join__count"><b id="join-count">0</b> connected</p>
+    </aside>
+
+    <aside class="legend" id="legend" aria-label="Debug legend" hidden>
+      <h2 class="legend__title">Three simple rules</h2>
+      <ul class="legend__list">
+        <li class="legend__item legend__item--separation">
+          <span class="legend__name">Separation</span>
+          <span class="legend__text">Steer away from crowding</span>
+        </li>
+        <li class="legend__item legend__item--alignment">
+          <span class="legend__name">Alignment</span>
+          <span class="legend__text">Match the neighbors' heading</span>
+        </li>
+        <li class="legend__item legend__item--cohesion">
+          <span class="legend__name">Cohesion</span>
+          <span class="legend__text">Move toward the group's center</span>
+        </li>
+      </ul>
+      <h2 class="legend__title legend__title--spaced">Plus</h2>
+      <ul class="legend__list">
+        <li class="legend__item legend__item--pull">
+          <span class="legend__name">Leader / pull</span>
+          <span class="legend__text">The hexagon flocks follow when idle</span>
+        </li>
+        <li class="legend__item">
+          <span class="legend__name">Quadtree</span>
+          <span class="legend__text">Boxes split where boids crowd</span>
+        </li>
+      </ul>
+      <p class="legend__hint">Click a boid to inspect it</p>
+    </aside>
+
+    <aside class="panel" id="panel" aria-label="Controls" hidden>
+      <header class="panel__header">
+        <h1 class="panel__title">Boids</h1>
+        <p class="panel__status" id="status">Running</p>
+      </header>
+
+      <section class="panel__section">
+        <div class="tally" aria-label="Flock sizes">
+          <span class="tally__item tally__item--a">A <b id="count-a">0</b></span>
+          <span class="tally__item tally__item--b">B <b id="count-b">0</b></span>
+        </div>
+        <div class="tally__bar" aria-hidden="true">
+          <span class="tally__fill tally__fill--a" id="bar-a"></span>
+          <span class="tally__fill tally__fill--b" id="bar-b"></span>
+        </div>
+      </section>
+
+      <section class="panel__section">
+        <div class="panel__row">
+          <button class="button" type="button" data-action="pause" aria-pressed="false">
+            Pause <kbd class="button__key">Space</kbd>
+          </button>
+          <button class="button" type="button" data-action="reset">
+            Reset <kbd class="button__key">R</kbd>
+          </button>
+        </div>
+        <div class="panel__row">
+          <button class="button" type="button" data-action="debug" aria-pressed="false">
+            Debug <kbd class="button__key">Q</kbd>
+          </button>
+          <button class="button" type="button" data-action="fullscreen">
+            Fullscreen <kbd class="button__key">F</kbd>
+          </button>
+        </div>
+      </section>
+
+      <section class="panel__section">
+        <h2 class="panel__heading">Flocks</h2>
+        <label class="control">
+          <span class="control__label">Boids per flock</span>
+          <output class="control__value"></output>
+          <input
+            class="control__input"
+            type="range"
+            data-param="boidsPerFlock"
+            min="10"
+            max="300"
+            step="5"
+          />
+        </label>
+        <label class="control">
+          <span class="control__label">Separation</span>
+          <output class="control__value"></output>
+          <input
+            class="control__input"
+            type="range"
+            data-param="separation"
+            min="0"
+            max="4"
+            step="0.1"
+          />
+        </label>
+        <label class="control">
+          <span class="control__label">Alignment</span>
+          <output class="control__value"></output>
+          <input
+            class="control__input"
+            type="range"
+            data-param="alignment"
+            min="0"
+            max="3"
+            step="0.1"
+          />
+        </label>
+        <label class="control">
+          <span class="control__label">Cohesion</span>
+          <output class="control__value"></output>
+          <input
+            class="control__input"
+            type="range"
+            data-param="cohesion"
+            min="0"
+            max="3"
+            step="0.1"
+          />
+        </label>
+        <label class="control">
+          <span class="control__label">Perception</span>
+          <output class="control__value"></output>
+          <input
+            class="control__input"
+            type="range"
+            data-param="perceptionRadius"
+            min="30"
+            max="140"
+            step="5"
+          />
+        </label>
+        <label class="control">
+          <span class="control__label">Max speed</span>
+          <output class="control__value"></output>
+          <input
+            class="control__input"
+            type="range"
+            data-param="maxSpeed"
+            min="60"
+            max="300"
+            step="10"
+          />
+        </label>
+      </section>
+
+      <section class="panel__section">
+        <h2 class="panel__heading">Audience</h2>
+        <div class="panel__row">
+          <button
+            class="button"
+            type="button"
+            data-action="presenterMouse"
+            aria-pressed="true"
+          >
+            Mouse <kbd class="button__key">M</kbd>
+          </button>
+          <button
+            class="button"
+            type="button"
+            data-action="audience"
+            aria-pressed="false"
+          >
+            Audience <kbd class="button__key">A</kbd>
+          </button>
+        </div>
+        <div class="panel__row">
+          <button
+            class="button"
+            type="button"
+            data-action="simulate"
+            aria-pressed="false"
+          >
+            Simulate <kbd class="button__key">S</kbd>
+          </button>
+          <button class="button" type="button" data-action="clear">
+            Clear <kbd class="button__key">C</kbd>
+          </button>
+        </div>
+        <div class="panel__row">
+          <button class="button" type="button" data-action="join" aria-pressed="false">
+            Join QR <kbd class="button__key">J</kbd>
+          </button>
+        </div>
+        <label class="control">
+          <span class="control__label">Simulated players</span>
+          <output class="control__value"></output>
+          <input
+            class="control__input"
+            type="range"
+            data-state="simulatedPlayers"
+            min="2"
+            max="60"
+            step="2"
+          />
+        </label>
+      </section>
+
+      <footer class="panel__footer">
+        <kbd class="button__key">H</kbd> hide <kbd class="button__key">?</kbd> shortcuts
+      </footer>
+    </aside>
+
+    <aside class="help" id="help" aria-label="Keyboard shortcuts" hidden>
+      <h2 class="help__title">Shortcuts</h2>
+      <dl class="help__list">
+        <dt>Space</dt>
+        <dd>Pause / resume</dd>
+        <dt>R</dt>
+        <dd>Reset the flocks</dd>
+        <dt>Q</dt>
+        <dd>Debug view (rules)</dd>
+        <dt>F</dt>
+        <dd>Fullscreen</dd>
+        <dt>H</dt>
+        <dd>Hide / show controls</dd>
+        <dt>Shift</dt>
+        <dd>Hold: mouse converts what it touches</dd>
+        <dt>M</dt>
+        <dd>Presenter mouse on / off</dd>
+        <dt>A</dt>
+        <dd>Audience mode (the fight) on / off</dd>
+        <dt>S</dt>
+        <dd>Simulated audience on / off</dd>
+        <dt>C</dt>
+        <dd>Clear audience</dd>
+        <dt>J</dt>
+        <dd>Join QR and link</dd>
+        <dt>X</dt>
+        <dd>Debug: clear the selected boids</dd>
+        <dt>G</dt>
+        <dd>Glow effects on / off</dd>
+        <dt>P</dt>
+        <dd>FPS counter</dd>
+        <dt>?</dt>
+        <dd>This list</dd>
+      </dl>
+    </aside>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>
