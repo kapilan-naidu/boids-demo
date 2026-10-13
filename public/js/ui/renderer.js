@@ -262,10 +262,12 @@ export class Renderer {
     const stroke = this.heads[pointer.flock][0];
     const { x, y } = pointer;
     const pulse = pointer.active ? 1 + 0.08 * Math.sin(world.time * 9) : 1;
-    const radius = 17 * pulse;
+    const audienceMarker = pointer.kind !== "presenter";
+    const radius = (audienceMarker ? 12 : 17) * pulse;
+    const halo = audienceMarker ? 46 : 60;
 
     ctx.globalAlpha = 0.45 * strength;
-    ctx.drawImage(this.sprite(color), x - 60, y - 60, 120, 120);
+    ctx.drawImage(this.sprite(color), x - halo, y - halo, halo * 2, halo * 2);
 
     ctx.globalAlpha = strength;
     ctx.strokeStyle = stroke;

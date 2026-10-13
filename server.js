@@ -25,7 +25,8 @@ const app = createApp({
 
 app.server.listen(PORT, HOST, () => {
   const host = HOST === "0.0.0.0" ? "localhost" : HOST;
-  const suffix = token ? `?token=${token}` : "";
+  // The token itself is never logged, since logs are often shared or retained.
+  const suffix = token ? "?token=YOUR_PRESENTER_TOKEN" : "";
   console.log(`Presenter: http://${host}:${PORT}/${suffix}`);
   console.log(`Phones:    http://${host}:${PORT}/join/`);
   if (!token) console.log("No PRESENTER_TOKEN set: the presenter view is open to anyone.");
