@@ -115,7 +115,7 @@ touch. Up to 80 phones are accepted; later ones see "The room is full".
 | ----------------- | --------------------------------------------------------------------- |
 | `PORT`            | Port to listen on. Default 3000                                       |
 | `HOST`            | Address to bind. Default `localhost`, or `0.0.0.0` when `PORT` is set |
-| `PRESENTER_TOKEN` | Secret that protects the presenter view. Required in production       |
+| `PRESENTER_TOKEN` | Secret that protects the presenter view. Recommended when hosted      |
 | `PUBLIC_URL`      | Address phones should open, if it can't be worked out from the request |
 | `MAX_AUDIENCE`    | Most phones at once. Default 80                                       |
 
@@ -130,12 +130,15 @@ only one instance: the connections live in that process's memory.
 1. Push the repository to GitHub, then create a Railway project from it. Railway detects
    Node and runs `npm start`.
 2. Under **Variables**, set `PRESENTER_TOKEN` to a long random string, for example the
-   output of `openssl rand -hex 16`.
+   output of `openssl rand -hex 16`. This is optional but recommended: without it, anyone
+   who finds the address can open the presenter view, and a second presenter replaces the
+   first. The server logs a warning when it is missing.
 3. Under **Settings > Networking**, generate a public domain. Railway serves it over HTTPS,
    and the pages switch to `wss://` automatically.
 4. Optionally set the health check path to `/healthz`.
-5. Open `https://YOUR-DOMAIN/?token=YOUR_TOKEN` on the presenter laptop and press `J`. The
-   QR code and link use the public address.
+5. Open `https://YOUR-DOMAIN/?token=YOUR_TOKEN` (or just `https://YOUR-DOMAIN/` with no
+   token set) on the presenter laptop and press `J`. The QR code and link use the public
+   address.
 
 Check Railway's current plan limits and whether an idle service sleeps before the lecture,
 and try the whole thing once with real phones on the venue network.
